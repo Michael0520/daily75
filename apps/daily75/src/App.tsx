@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { CodeEditor } from "./components/CodeEditor.tsx";
 import { ProblemDescription } from "./components/ProblemDescription.tsx";
 import { ProblemList } from "./components/ProblemList.tsx";
@@ -27,7 +27,10 @@ export function App() {
   const [runError, setRunError] = useState<string | null>(null);
   const [attempted, setAttempted] = useState<Set<number>>(new Set());
 
-  const problem = blind75.find((p) => p.id === selectedId) ?? blind75[0];
+  const problem = useMemo(
+    () => blind75.find((p) => p.id === selectedId) ?? blind75[0],
+    [selectedId],
+  );
   const { code, setCode } = useCodeState(problem, language);
 
   useEffect(() => {

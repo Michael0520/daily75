@@ -39,7 +39,7 @@ export function useCodeState(problem: Problem, language: Language) {
       setOverrides((prev) => ({ ...prev, [key]: val }));
       saveToDisk(problem.id, language, val);
     },
-    [key, problem.id, language],
+    [key],
   );
 
   return { code, setCode };
