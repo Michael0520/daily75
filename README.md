@@ -4,7 +4,7 @@
 
 A personal daily coding practice platform built around the [Blind 75](https://www.techinterviewhandbook.org/grind75) problem set. Write JavaScript or TypeScript directly in the browser, run tests against real test cases, unlock solutions, and track your progress.
 
-![daily75 screenshot](docs/screenshot.png)
+<img width="1438" height="1156" alt="CleanShot 2026-06-04 at 04 16 46" src="https://github.com/user-attachments/assets/bc6e4ff5-5ab7-4cad-9576-dce2b31794d0" />
 
 ---
 
