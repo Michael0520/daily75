@@ -1,5 +1,5 @@
 import { CheckCircle2, XCircle } from "lucide-react";
-import type { TestResult } from "../lib/codeRunner.ts";
+import type { TestResult } from "../execution/types.ts";
 import { ScrollArea } from "./ui/scroll-area.tsx";
 
 interface Props {

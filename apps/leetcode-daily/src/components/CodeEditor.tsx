@@ -1,10 +1,8 @@
 import MonacoEditor from "@monaco-editor/react";
-import type { Problem } from "../data/types.ts";
-import type { Language } from "../lib/codeRunner.ts";
+import type { Language } from "../execution/types.ts";
 import { Button } from "./ui/button.tsx";
 
 interface Props {
-  problem: Problem;
   language: Language;
   code: string;
   running: boolean;
@@ -16,11 +14,9 @@ interface Props {
 const LANGS: { value: Language; label: string; monaco: string }[] = [
   { value: "javascript", label: "JS", monaco: "javascript" },
   { value: "typescript", label: "TS", monaco: "typescript" },
-  { value: "python", label: "Python", monaco: "python" },
 ];
 
 export function CodeEditor({
-  problem: _problem,
   language,
   code,
   running,

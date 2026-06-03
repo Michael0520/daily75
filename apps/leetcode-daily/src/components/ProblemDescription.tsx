@@ -1,4 +1,4 @@
-import type { Problem } from "../data/types.ts";
+import type { Problem } from "../problem/types.ts";
 import { Badge } from "./ui/badge.tsx";
 import { ScrollArea } from "./ui/scroll-area.tsx";
 
@@ -8,6 +8,26 @@ const diffColor = {
   Hard: "bg-red-100 text-red-700",
 };
 
+function InlineText({ text }: { text: string }) {
+  const parts = text.split(/(`[^`]+`)/g);
+  return (
+    <>
+      {parts.map((part, i) =>
+        part.startsWith("`") && part.endsWith("`") ? (
+          <code
+            key={i}
+            className="rounded bg-muted px-1 py-0.5 font-mono text-[0.8em] text-foreground"
+          >
+            {part.slice(1, -1)}
+          </code>
+        ) : (
+          <span key={i}>{part}</span>
+        ),
+      )}
+    </>
+  );
+}
+
 interface Props {
   problem: Problem;
 }
@@ -16,7 +36,7 @@ export function ProblemDescription({ problem }: Props) {
   return (
     <ScrollArea className="h-full">
       <div className="space-y-4 p-4">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <h2 className="text-lg font-semibold">{problem.title}</h2>
           <Badge className={diffColor[problem.difficulty]}>{problem.difficulty}</Badge>
           {problem.topics.map((t) => (
@@ -26,19 +46,29 @@ export function ProblemDescription({ problem }: Props) {
           ))}
         </div>
 
-        <div className="whitespace-pre-wrap text-sm leading-relaxed">{problem.description}</div>
+        <div className="text-sm leading-relaxed">
+          {problem.description.split("\n").map((line, i) => (
+            <p key={i} className={line === "" ? "mt-3" : "mt-1 first:mt-0"}>
+              <InlineText text={line} />
+            </p>
+          ))}
+        </div>
 
         <div className="space-y-3">
           {problem.examples.map((ex, i) => (
             <div key={i} className="rounded-md bg-muted p-3 text-sm">
               <p className="font-medium">Example {i + 1}</p>
               <p className="mt-1">
-                <span className="font-mono text-xs">Input:</span> {ex.input}
+                <span className="font-mono text-xs font-semibold">Input:</span>{" "}
+                <span className="font-mono text-xs">{ex.input}</span>
               </p>
               <p>
-                <span className="font-mono text-xs">Output:</span> {ex.output}
+                <span className="font-mono text-xs font-semibold">Output:</span>{" "}
+                <span className="font-mono text-xs">{ex.output}</span>
               </p>
-              {ex.explanation && <p className="mt-1 text-muted-foreground">{ex.explanation}</p>}
+              {ex.explanation && (
+                <p className="mt-1 text-xs text-muted-foreground">{ex.explanation}</p>
+              )}
             </div>
           ))}
         </div>
@@ -48,7 +78,7 @@ export function ProblemDescription({ problem }: Props) {
           <ul className="space-y-1">
             {problem.constraints.map((c, i) => (
               <li key={i} className="font-mono text-xs text-muted-foreground">
-                • {c}
+                • <InlineText text={c} />
               </li>
             ))}
           </ul>

@@ -6,19 +6,13 @@ import { SolutionViewer } from "./components/SolutionViewer.tsx";
 import { TestResults } from "./components/TestResults.tsx";
 import { Separator } from "./components/ui/separator.tsx";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs.tsx";
-import { blind75 } from "./data/blind75.ts";
-import type { Problem } from "./data/types.ts";
-import { useDailyProblem } from "./hooks/useDailyProblem.ts";
-import { useProgress } from "./hooks/useProgress.ts";
-import type { Language, TestResult } from "./lib/codeRunner.ts";
-import { runCode } from "./lib/codeRunner.ts";
-
-type CodeMap = Record<string, Record<Language, string>>;
-
-function getStarter(problem: Problem, lang: Language): string {
-  if (lang === "python") return problem.starterPy;
-  return problem.starterJs;
-}
+import { useCodeState } from "./editor/useCodeState.ts";
+import { runCode } from "./execution/runner.ts";
+import type { Language, TestResult } from "./execution/types.ts";
+import { hasSupabase } from "./infra/supabase.ts";
+import { blind75 } from "./problem/blind75.ts";
+import { useDailyProblem } from "./problem/useDailyProblem.ts";
+import { useProgress } from "./progress/useProgress.ts";
 
 export function App() {
   const { progress, loading, markAttempted, markSolved, addSubmission, solvedCount } =
@@ -27,30 +21,18 @@ export function App() {
 
   const [selectedId, setSelectedId] = useState<number>(1);
   const [language, setLanguage] = useState<Language>("javascript");
-  const [codeMap, setCodeMap] = useState<CodeMap>({});
   const [running, setRunning] = useState(false);
   const [results, setResults] = useState<TestResult[] | null>(null);
   const [runError, setRunError] = useState<string | null>(null);
   const [attempted, setAttempted] = useState<Set<number>>(new Set());
 
   const problem = blind75.find((p) => p.id === selectedId) ?? blind75[0];
-
-  const code = codeMap[selectedId]?.[language] ?? getStarter(problem, language);
+  const { code, setCode } = useCodeState(problem, language);
 
   useEffect(() => {
     setResults(null);
     setRunError(null);
   }, [selectedId, language]);
-
-  const handleCodeChange = useCallback(
-    (val: string) => {
-      setCodeMap((prev) => ({
-        ...prev,
-        [selectedId]: { ...prev[selectedId], [language]: val } as Record<Language, string>,
-      }));
-    },
-    [selectedId, language],
-  );
 
   const handleLanguageChange = useCallback((lang: Language) => {
     setLanguage(lang);
@@ -83,13 +65,18 @@ export function App() {
 
   return (
     <div className="flex h-screen flex-col bg-background text-foreground">
-      {/* Header */}
       <header className="flex h-11 items-center gap-4 border-b px-4">
         <span className="font-semibold">LeetCode Daily</span>
         <Separator orientation="vertical" className="h-4" />
         <span className="text-sm text-muted-foreground">
           {loading ? "…" : `${solvedCount} / 75 solved`}
         </span>
+        {!hasSupabase && (
+          <>
+            <Separator orientation="vertical" className="h-4" />
+            <span className="text-xs text-yellow-500">No DB — progress not saved</span>
+          </>
+        )}
         <Separator orientation="vertical" className="h-4" />
         <button
           onClick={() => setSelectedId(daily.id)}
@@ -99,28 +86,23 @@ export function App() {
         </button>
       </header>
 
-      {/* Main layout */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Problem list */}
         <aside className="w-56 shrink-0 overflow-hidden">
           <ProblemList selectedId={selectedId} progress={progress} onSelect={setSelectedId} />
         </aside>
 
-        {/* Description */}
         <div className="w-80 shrink-0 overflow-hidden border-r">
           <ProblemDescription problem={problem} />
         </div>
 
-        {/* Editor + results */}
         <div className="flex flex-1 flex-col overflow-hidden">
           <div className="flex-1 overflow-hidden">
             <CodeEditor
-              problem={problem}
               language={language}
               code={code}
               running={running}
               onLanguageChange={handleLanguageChange}
-              onCodeChange={handleCodeChange}
+              onCodeChange={setCode}
               onRun={handleRun}
             />
           </div>

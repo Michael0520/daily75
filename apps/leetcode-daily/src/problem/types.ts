@@ -12,16 +12,22 @@ export type Topic =
   | "Tree"
   | "Heap";
 
-export interface TestCase {
-  input: unknown[];
-  expected: unknown;
-  description?: string;
-}
-
 export interface Example {
   input: string;
   output: string;
   explanation?: string;
+}
+
+export type InputType = "tree" | "list" | "list[]" | null;
+
+export interface TestCase {
+  input: unknown[];
+  expected: unknown;
+  description?: string;
+  /** Per-argument type hints: 'tree' converts array→TreeNode, 'list' converts array→ListNode */
+  inputTypes?: InputType[];
+  /** If result is a tree/list, serialize back to array before comparing */
+  expectedType?: "tree" | "list";
 }
 
 export interface Problem {
@@ -35,8 +41,6 @@ export interface Problem {
   constraints: string[];
   testCases: TestCase[];
   starterJs: string;
-  starterPy: string;
   solutionJs: string;
-  solutionPy: string;
   solutionExplanation: string;
 }

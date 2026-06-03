@@ -1,8 +1,9 @@
 import { CheckCircle, Circle, Clock } from "lucide-react";
 import { useState } from "react";
-import { blind75 } from "../data/blind75.ts";
-import type { Difficulty, Topic } from "../data/types.ts";
-import type { ProgressMap } from "../hooks/useProgress.ts";
+import { blind75 } from "../problem/blind75.ts";
+import { filterProblems } from "../problem/filter.ts";
+import type { Difficulty, Topic } from "../problem/types.ts";
+import type { ProgressMap } from "../progress/types.ts";
 import { cn } from "../lib/utils.ts";
 import { Badge } from "./ui/badge.tsx";
 import { ScrollArea } from "./ui/scroll-area.tsx";
@@ -35,19 +36,15 @@ interface Props {
 }
 
 export function ProblemList({ selectedId, progress, onSelect }: Props) {
-  const [topic, setTopic] = useState<string>("all");
-  const [difficulty, setDifficulty] = useState<string>("all");
+  const [topic, setTopic] = useState<Topic | "all">("all");
+  const [difficulty, setDifficulty] = useState<Difficulty | "all">("all");
 
-  const filtered = blind75.filter(
-    (p) =>
-      (topic === "all" || p.topics.includes(topic as Topic)) &&
-      (difficulty === "all" || p.difficulty === difficulty),
-  );
+  const filtered = filterProblems(blind75, { topic, difficulty });
 
   return (
     <div className="flex h-full flex-col border-r">
       <div className="space-y-2 border-b p-3">
-        <Select value={topic} onValueChange={setTopic}>
+        <Select value={topic} onValueChange={(v) => setTopic(v as Topic | "all")}>
           <SelectTrigger className="h-8 text-xs">
             <SelectValue placeholder="All Topics" />
           </SelectTrigger>
@@ -60,7 +57,7 @@ export function ProblemList({ selectedId, progress, onSelect }: Props) {
             ))}
           </SelectContent>
         </Select>
-        <Select value={difficulty} onValueChange={setDifficulty}>
+        <Select value={difficulty} onValueChange={(v) => setDifficulty(v as Difficulty | "all")}>
           <SelectTrigger className="h-8 text-xs">
             <SelectValue placeholder="All Difficulties" />
           </SelectTrigger>

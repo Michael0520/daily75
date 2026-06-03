@@ -1,8 +1,8 @@
-import MonacoEditor from "@monaco-editor/react";
 import { Lock } from "lucide-react";
-import type { Problem } from "../data/types.ts";
-import type { Language } from "../lib/codeRunner.ts";
+import type { Language } from "../execution/types.ts";
+import type { Problem } from "../problem/types.ts";
 import { ScrollArea } from "./ui/scroll-area.tsx";
+import { ShikiCode } from "./ShikiCode.tsx";
 
 interface Props {
   problem: Problem;
@@ -11,8 +11,6 @@ interface Props {
 }
 
 export function SolutionViewer({ problem, language, unlocked }: Props) {
-  const code = language === "python" ? problem.solutionPy : problem.solutionJs;
-
   if (!unlocked) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-2 text-muted-foreground">
@@ -25,20 +23,7 @@ export function SolutionViewer({ problem, language, unlocked }: Props) {
   return (
     <ScrollArea className="h-full">
       <div className="space-y-3 p-3">
-        <div className="h-48 overflow-hidden rounded-md border">
-          <MonacoEditor
-            height="100%"
-            language={language === "python" ? "python" : "javascript"}
-            value={code}
-            theme="vs-dark"
-            options={{
-              readOnly: true,
-              fontSize: 12,
-              minimap: { enabled: false },
-              scrollBeyondLastLine: false,
-            }}
-          />
-        </div>
+        <ShikiCode code={problem.solutionJs} lang={language} />
         <div className="rounded-md bg-muted p-3 text-xs leading-relaxed text-muted-foreground">
           {problem.solutionExplanation}
         </div>

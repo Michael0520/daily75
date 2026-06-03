@@ -1,72 +1,142 @@
+# LeetCode Daily Platform — Design Doc
+
 ## Context
 
-這是一個全新的 React SPA，建立在現有的 Vite+ monorepo 之上（`apps/leetcode-daily`）。專案目前只有一個 boilerplate website app 與一個 utils package，沒有任何業務邏輯。本設計涵蓋新 app 的完整架構，包含瀏覽器內程式碼執行、Supabase 資料持久化、以及 UI 組件結構。
+個人每日刷題平台，以 Blind 75 為題庫，支援在瀏覽器內直接寫 JS / TS / Python、執行測試、查看解答、追蹤進度。資料存 Supabase，無需獨立後端 API。
+
+---
 
 ## Goals / Non-Goals
 
 **Goals:**
 
-- 在瀏覽器內執行 JavaScript/TypeScript 與 Python 並對比測試案例輸出
+- 在瀏覽器內執行 JS/TS/Python 並對比測試案例輸出
 - 以 Supabase 持久化進度與提交記錄（單使用者，無需 Auth）
 - 提供 Monaco Editor 品質的程式碼編輯體驗
-- Blind 75 所有 75 題靜態資料可搜尋、可篩選
+- Blind 75 全部 75 題靜態資料可搜尋、可篩選
 
 **Non-Goals:**
 
-- 多使用者 / 帳號系統（留待未來）
-- 伺服器端程式碼執行（全在客戶端）
+- 多使用者 / 帳號系統
+- 伺服器端程式碼執行
 - 自訂題目新增
 - 行動裝置版面最佳化（桌面優先）
 
+---
+
+## 架構
+
+### Domain 結構（DDD）
+
+```
+apps/leetcode-daily/src/
+  problem/        題目 domain
+    types.ts      Problem, TestCase, Example, Difficulty, Topic
+    blind75.ts    75 題靜態資料
+    filter.ts     filterProblems(problems, { topic, difficulty })
+    schedule.ts   selectDailyProblem(problems, progress, nowMs?)
+    useDailyProblem.ts  React hook（包裝 schedule.ts）
+
+  execution/      程式碼執行 domain
+    types.ts      Language, TestResult
+    stripTypes.ts stripTypeAnnotations(code) — TS 型別剝除
+    extractFnName.ts  extractFnName(code)
+    worker.ts     Web Worker 沙箱（JS/TS）
+    runner.ts     runCode() / runJS() / runPython()
+
+  progress/       進度追蹤 domain
+    types.ts      ProblemStatus, ProgressEntry, ProgressMap
+    useProgress.ts  Supabase hook
+
+  editor/         編輯器狀態 domain
+    useCodeState.ts  localStorage 持久化
+
+  infra/          基礎設施
+    supabase.ts   Supabase client（null when env vars absent）
+
+  components/     UI 層（薄，只呼叫 domain hooks）
+    CodeEditor.tsx
+    ProblemDescription.tsx
+    ProblemList.tsx
+    SolutionViewer.tsx
+    TestResults.tsx
+    ui/           shadcn/ui primitives
+
+  lib/
+    utils.ts      cn()（shadcn 工具）
+```
+
+### UI 佈局
+
+```
+┌──────────────────────────────────────────────────────────┐
+│ LeetCode Daily  │  X / 75 solved  │  Today: <Title>      │
+├───────────┬─────────────────┬───────────────────────────┤
+│ Problem   │  Description    │  Monaco Editor            │
+│ List      │  Examples       │  [JS | TS | Python]       │
+│           │  Constraints    │                           │
+│ topic ▼   ├─────────────────┤  [▶ Run Tests]            │
+│ diff  ▼   │  Test Results   ├───────────────────────────┤
+│           │  ✅ 3/3 passed  │  Solution (locked/unlocked)│
+└───────────┴─────────────────┴───────────────────────────┘
+```
+
+---
+
 ## Decisions
 
-### 1. 程式碼執行環境：全客戶端
+### 1. 全客戶端程式碼執行
 
-**決定**：JS/TS 用 Web Worker + `new Function()` 沙箱；Python 用 Pyodide（WASM）。
+- **JS/TS**：Web Worker + `new Function()` 沙箱，5s timeout
+- **TypeScript**：自製 regex stripper（`execution/stripTypes.ts`）在執行前剝除型別標註，不引入 TypeScript compiler 依賴（~5MB）
+- **Python**：Pyodide WASM，lazy load（首次 ~10MB），獨立 Promise chain 每 test case 執行
 
-**理由**：不需後端伺服器，部署簡單，個人使用安全性足夠。Pyodide lazy load 在首次執行 Python 時才載入（~10MB），避免影響初始載入速度。
+### 2. Supabase 直連（無 API 層）
 
-**替代方案考慮**：Elysia.js API server 可執行更安全的沙箱，但增加部署複雜度，對個人工具不必要。
+單使用者、無敏感邏輯，anon key 直連 PostgREST 足夠。`infra/supabase.ts` 當 env vars 缺席時回傳 `null`，progress domain 優雅降級（in-memory 狀態，不 crash）。
 
----
+### 3. 程式碼持久化（localStorage）
 
-### 2. 資料庫：Supabase 直連（無 API 層）
+`editor/useCodeState.ts` 以 `lc-code-{problemId}-{language}` 為 key 持久化至 localStorage，重整後草稿保留。優先序：in-memory overrides → localStorage → starter code。
 
-**決定**：React app 直接使用 `@supabase/supabase-js` 與 Supabase PostgREST 溝通，不另立 API server。
+### 4. 每日排程：Deterministic
 
-**理由**：單使用者、無敏感商業邏輯，直連足夠。Supabase RLS 設定為 public 讀寫（anon key 即可）。
+```ts
+const dayIndex = Math.floor(nowMs / 86_400_000);
+const pool = unsolved.length > 0 ? unsolved : allProblems;
+return pool[dayIndex % pool.length];
+```
 
-**替代方案考慮**：Elysia.js wrapper 可多一層控制，但對此規模無必要。
+`nowMs` 可注入（測試用），不需 cron job，跨裝置同步一致。
 
----
+### 5. DDD 架構原則
 
-### 3. UI 框架：React 19 + Tailwind v4 + shadcn/ui
-
-**決定**：在 `apps/leetcode-daily` 新增獨立 React app，不修改現有 `apps/website`。UI 元件使用 shadcn/ui（基於 Radix UI + Tailwind），提供 Button、Badge、Tabs、ScrollArea、Tooltip 等現成無障礙元件。
-
-**理由**：React 組件模型適合多面板互動式 UI（問題列表 + 編輯器 + 測試結果）。shadcn/ui 直接複製元件到專案，完全可客製化，不引入黑盒依賴。Tailwind v4 與 Vite 整合良好，和現有 monorepo toolchain 一致。
-
-**替代方案考慮**：純 Tailwind 手寫元件速度慢；MUI/Chakra 體積大且風格固定。shadcn/ui 在 Radix UI 無障礙基礎上提供設計彈性，是此規模專案的最佳折衷。
-
----
-
-### 4. 題目資料：靜態 TS 檔 + Supabase seed
-
-**決定**：Blind 75 題目資料定義在 `src/data/blind75.ts`，提供 `scripts/seed.ts` 寫入 Supabase。
-
-**理由**：靜態資料易維護、可 code review；seed script 只需執行一次。題目不會頻繁變動，不需要 CMS。
+- 各 domain 有獨立的 `types.ts`，不跨 domain 共享型別
+- UI 層（`components/`）只依賴 domain 型別與 hooks，不含業務邏輯
+- `filterProblems()` 從 UI 抽至 `problem/filter.ts`，可獨立測試
+- Infrastructure（Supabase）隔離在 `infra/`，domain hook 透過 null-check 降級
 
 ---
 
-### 5. 每日推薦：Deterministic 算法
+## 測試策略
 
-**決定**：`unsolved[epochDay % unsolved.length]`，不需後端。
+| Domain    | 測試檔                  | 覆蓋重點                                                                                 |
+| --------- | ----------------------- | ---------------------------------------------------------------------------------------- |
+| execution | `stripTypes.test.ts`    | param/return types, optional `?:`, generics, `as` cast, realistic Two Sum TS → JS 可執行 |
+| execution | `extractFnName.test.ts` | JS/Python 宣告、fallback                                                                 |
+| problem   | `filter.test.ts`        | topic/difficulty 組合、空結果、多 topic                                                  |
+| problem   | `schedule.test.ts`      | 確定性、輪替、solved 排除、all-solved fallback                                           |
 
-**理由**：同一天任何裝置結果相同（同步一致），簡單可預測，無需 cron job。
+執行：`pnpm --filter leetcode-daily test`（33 tests）
+
+---
 
 ## Risks / Trade-offs
 
-- **Pyodide 首次載入慢**（~10MB）→ 顯示 loading indicator，提前在背景預載
-- **Web Worker 沙箱不完美**：使用者可寫無窮迴圈 → 5 秒 timeout 強制終止 Worker
-- **Supabase anon key 暴露於前端**：RLS 設定為允許所有操作，理論上任何人可存取資料庫 → 接受此風險（個人工具，資料非敏感）
-- **test_cases 硬編碼**：Blind 75 測試案例需人工整理，耗時 → 先整理 10 題驗證流程，再補齊其餘
+| 風險                   | 緩解                                                 |
+| ---------------------- | ---------------------------------------------------- |
+| Pyodide 首次載入 ~10MB | lazy load + "Loading Python…" 提示                   |
+| Web Worker 無窮迴圈    | 5s timeout 強制 terminate()                          |
+| Supabase anon key 暴露 | 接受（個人工具，資料非敏感）                         |
+| TS stripper 不完整     | 涵蓋 LeetCode 95% 常見 pattern；邊界 case 可補 regex |
+| test_cases 需人工整理  | 先 10 題 Array，逐類補齊剩餘 65 題                   |
