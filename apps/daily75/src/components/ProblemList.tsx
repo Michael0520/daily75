@@ -87,6 +87,7 @@ export function ProblemList({ selectedId, progress, onSelect }: Props) {
                 <button
                   ref={isSelected ? selectedRef : null}
                   onClick={() => onSelect(p.id)}
+                  title={p.title}
                   className={cn(
                     "flex w-full items-center gap-2 border-l-2 border-transparent px-3 py-1.5 text-left text-sm transition-all duration-150 hover:bg-accent active:scale-[0.99]",
                     isSelected

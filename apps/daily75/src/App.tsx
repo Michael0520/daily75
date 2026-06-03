@@ -72,7 +72,8 @@ export function App() {
     }
   }, [code, language, problem, selectedId, markAttempted, markSolved, addSubmission]);
 
-  const unlocked = attempted.has(selectedId) || progress[selectedId]?.status !== "unsolved";
+  const status = progress[selectedId]?.status;
+  const unlocked = attempted.has(selectedId) || status === "attempted" || status === "solved";
 
   return (
     <div className="flex h-screen flex-col bg-background text-foreground">
