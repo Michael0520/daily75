@@ -26,16 +26,16 @@ export function CodeEditor({
 }: Props) {
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between border-b px-3 py-2">
-        <div className="flex gap-1">
+      <div className="flex items-center justify-between border-b px-3 py-1.5">
+        <div className="flex gap-0.5">
           {LANGS.map((l) => (
             <button
               key={l.value}
               onClick={() => onLanguageChange(l.value)}
-              className={`rounded px-2 py-1 text-xs font-medium transition-colors ${
+              className={`rounded px-2.5 py-1 text-xs font-medium transition-all duration-150 active:scale-95 ${
                 language === l.value
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-accent"
+                  ? "bg-primary/15 text-primary ring-1 ring-primary/30"
+                  : "text-muted-foreground hover:bg-accent hover:text-foreground"
               }`}
             >
               {l.label}
@@ -46,9 +46,9 @@ export function CodeEditor({
           size="sm"
           onClick={onRun}
           disabled={running}
-          className="h-7 border-0 bg-emerald-600 text-xs text-white hover:bg-emerald-500 disabled:bg-emerald-600/40"
+          className="h-7 border-0 bg-emerald-600 text-xs font-medium text-white transition-all hover:bg-emerald-500 active:scale-95 disabled:bg-emerald-600/40 disabled:text-white/50"
         >
-          {running ? "Running…" : "▶ Run"}
+          {running ? "running…" : "▶ run"}
         </Button>
       </div>
 

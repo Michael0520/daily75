@@ -92,7 +92,10 @@ export function App() {
       </div>
 
       <header className="flex h-11 shrink-0 items-center gap-3 border-b px-4">
-        <span className="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent font-bold tracking-tight">
+        <span
+          className="font-bold tracking-tight text-foreground"
+          style={{ letterSpacing: "-0.03em" }}
+        >
           {config.appName}
         </span>
         <Separator orientation="vertical" className="h-4 opacity-30" />
@@ -108,7 +111,7 @@ export function App() {
         <Separator orientation="vertical" className="h-4 opacity-30" />
         <button
           onClick={() => setSelectedId(daily.id)}
-          className="rounded-full border border-indigo-500/30 bg-indigo-500/10 px-2.5 py-0.5 text-xs text-indigo-300 transition-colors hover:bg-indigo-500/20"
+          className="rounded border border-emerald-500/30 bg-emerald-500/8 px-2.5 py-0.5 text-xs text-emerald-400 transition-colors hover:bg-emerald-500/15 active:scale-[0.97]"
         >
           Today: {daily.title}
         </button>
