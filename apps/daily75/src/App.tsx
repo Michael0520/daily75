@@ -70,7 +70,7 @@ export function App() {
         <span className="font-semibold">{config.appName}</span>
         <Separator orientation="vertical" className="h-4" />
         <span className="text-sm text-muted-foreground">
-          {loading ? "…" : `${solvedCount} / 75 solved`}
+          {loading ? "…" : `${solvedCount} / ${blind75.length} solved`}
         </span>
         {!hasSupabase && (
           <>
