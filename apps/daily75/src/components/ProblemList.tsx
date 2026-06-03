@@ -1,5 +1,5 @@
 import { CheckCircle, Circle, Clock } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { blind75 } from "../problem/blind75.ts";
 import { filterProblems } from "../problem/filter.ts";
 import type { Difficulty, Topic } from "../problem/types.ts";
@@ -38,8 +38,13 @@ interface Props {
 export function ProblemList({ selectedId, progress, onSelect }: Props) {
   const [topic, setTopic] = useState<Topic | "all">("all");
   const [difficulty, setDifficulty] = useState<Difficulty | "all">("all");
+  const selectedRef = useRef<HTMLButtonElement>(null);
 
   const filtered = filterProblems(blind75, { topic, difficulty });
+
+  useEffect(() => {
+    selectedRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, [selectedId]);
 
   return (
     <div className="flex h-full flex-col border-r">
@@ -76,30 +81,35 @@ export function ProblemList({ selectedId, progress, onSelect }: Props) {
         <ul className="py-1">
           {filtered.map((p) => {
             const status = progress[p.id]?.status ?? "unsolved";
+            const isSelected = selectedId === p.id;
             return (
               <li key={p.id}>
                 <button
+                  ref={isSelected ? selectedRef : null}
                   onClick={() => onSelect(p.id)}
                   className={cn(
                     "flex w-full items-center gap-2 border-l-2 border-transparent px-3 py-1.5 text-left text-sm transition-all duration-150 hover:bg-accent active:scale-[0.99]",
-                    selectedId === p.id
+                    isSelected
                       ? "border-l-primary bg-accent/70 text-foreground"
                       : "text-muted-foreground hover:text-foreground",
                   )}
                 >
                   <span className="shrink-0">
                     {status === "solved" ? (
-                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <CheckCircle className="h-3.5 w-3.5 text-primary" />
                     ) : status === "attempted" ? (
-                      <Clock className="h-4 w-4 text-yellow-500" />
+                      <Clock className="h-3.5 w-3.5 text-amber-400" />
                     ) : (
-                      <Circle className="h-4 w-4 text-muted-foreground" />
+                      <Circle className="h-3.5 w-3.5 text-muted-foreground/40" />
                     )}
                   </span>
                   <span className="flex-1 truncate">{p.title}</span>
                   <Badge
                     variant="outline"
-                    className={cn("shrink-0 text-xs", diffColor[p.difficulty])}
+                    className={cn(
+                      "shrink-0 border-0 px-0 text-xs font-medium",
+                      diffColor[p.difficulty],
+                    )}
                   >
                     {p.difficulty[0]}
                   </Badge>

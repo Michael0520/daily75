@@ -1,4 +1,5 @@
 import MonacoEditor from "@monaco-editor/react";
+import { Loader2, Play } from "lucide-react";
 import type { Language } from "../execution/types.ts";
 import { Button } from "./ui/button.tsx";
 
@@ -46,9 +47,19 @@ export function CodeEditor({
           size="sm"
           onClick={onRun}
           disabled={running}
-          className="h-7 border-0 bg-emerald-600 text-xs font-medium text-white transition-all hover:bg-emerald-500 active:scale-95 disabled:bg-emerald-600/40 disabled:text-white/50"
+          className="h-7 gap-1.5 border-0 bg-emerald-600 px-3 text-xs font-medium text-white transition-all hover:bg-emerald-500 active:scale-95 disabled:bg-emerald-600/40 disabled:text-white/50"
         >
-          {running ? "running…" : "▶ run"}
+          {running ? (
+            <>
+              <Loader2 className="h-3 w-3 animate-spin" />
+              running
+            </>
+          ) : (
+            <>
+              <Play className="h-3 w-3 fill-current" />
+              run
+            </>
+          )}
         </Button>
       </div>
 
@@ -65,6 +76,8 @@ export function CodeEditor({
             scrollBeyondLastLine: false,
             padding: { top: 8 },
             lineNumbers: "on",
+            overviewRulerBorder: false,
+            scrollbar: { verticalScrollbarSize: 4, horizontalScrollbarSize: 4 },
           }}
         />
       </div>

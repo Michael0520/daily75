@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { Database, FlaskConical, Lightbulb, Trophy, Zap } from "lucide-react";
 import { useAuth } from "./auth/useAuth.ts";
 import { AuthButton } from "./components/AuthButton.tsx";
 import { CodeEditor } from "./components/CodeEditor.tsx";
@@ -99,21 +100,26 @@ export function App() {
           {config.appName}
         </span>
         <Separator orientation="vertical" className="h-4 opacity-30" />
-        <span className="tabular-nums text-xs text-muted-foreground">
-          {loading ? "…" : `${solvedCount} / ${blind75.length} solved`}
+        <span className="flex items-center gap-1.5 tabular-nums text-xs text-muted-foreground">
+          <Trophy className="h-3 w-3 text-primary/60" />
+          {loading ? "…" : `${solvedCount} / ${blind75.length}`}
         </span>
         {!hasSupabase && (
           <>
             <Separator orientation="vertical" className="h-4 opacity-30" />
-            <span className="text-xs text-amber-400">no db</span>
+            <span className="flex items-center gap-1 text-xs text-amber-400">
+              <Database className="h-3 w-3" />
+              no db
+            </span>
           </>
         )}
         <Separator orientation="vertical" className="h-4 opacity-30" />
         <button
           onClick={() => setSelectedId(daily.id)}
-          className="rounded border border-emerald-500/30 bg-emerald-500/8 px-2.5 py-0.5 text-xs text-emerald-400 transition-colors hover:bg-emerald-500/15 active:scale-[0.97]"
+          className="flex items-center gap-1.5 rounded border border-emerald-500/30 bg-emerald-500/8 px-2.5 py-0.5 text-xs text-emerald-400 transition-colors hover:bg-emerald-500/15 active:scale-[0.97]"
         >
-          Today: {daily.title}
+          <Zap className="h-3 w-3" />
+          {daily.title}
         </button>
         <div className="ml-auto">
           <AuthButton
@@ -149,10 +155,12 @@ export function App() {
           <div className="h-56 border-t">
             <Tabs defaultValue="results" className="h-full flex flex-col">
               <TabsList className="h-8 w-full justify-start rounded-none border-b px-2">
-                <TabsTrigger value="results" className="h-7 text-xs">
-                  Test Results
+                <TabsTrigger value="results" className="h-7 gap-1.5 text-xs">
+                  <FlaskConical className="h-3 w-3" />
+                  Tests
                 </TabsTrigger>
-                <TabsTrigger value="solution" className="h-7 text-xs">
+                <TabsTrigger value="solution" className="h-7 gap-1.5 text-xs">
+                  <Lightbulb className="h-3 w-3" />
                   Solution
                 </TabsTrigger>
               </TabsList>
