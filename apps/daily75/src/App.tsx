@@ -6,6 +6,7 @@ import { SolutionViewer } from "./components/SolutionViewer.tsx";
 import { TestResults } from "./components/TestResults.tsx";
 import { Separator } from "./components/ui/separator.tsx";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs.tsx";
+import { config } from "./config.ts";
 import { useCodeState } from "./editor/useCodeState.ts";
 import { runCode } from "./execution/runner.ts";
 import type { Language, TestResult } from "./execution/types.ts";
@@ -66,7 +67,7 @@ export function App() {
   return (
     <div className="flex h-screen flex-col bg-background text-foreground">
       <header className="flex h-11 items-center gap-4 border-b px-4">
-        <span className="font-semibold">daily75</span>
+        <span className="font-semibold">{config.appName}</span>
         <Separator orientation="vertical" className="h-4" />
         <span className="text-sm text-muted-foreground">
           {loading ? "…" : `${solvedCount} / 75 solved`}
