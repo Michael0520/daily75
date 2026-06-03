@@ -4,6 +4,8 @@
 
 A personal daily coding practice platform built around the [Blind 75](https://www.techinterviewhandbook.org/grind75) problem set. Write JavaScript or TypeScript directly in the browser, run tests against real test cases, unlock solutions, and track your progress.
 
+![daily75 screenshot](docs/screenshot.png)
+
 ---
 
 ## Features
