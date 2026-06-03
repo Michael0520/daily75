@@ -48,6 +48,7 @@ export function App() {
   }, []);
 
   const handleRun = useCallback(async () => {
+    const currentId = selectedId;
     setRunning(true);
     setResults(null);
     setRunError(null);
@@ -55,16 +56,16 @@ export function App() {
     try {
       const res = await runCode(code, language, problem.testCases);
       setResults(res);
-      const allPassed = res.every((r) => r.passed);
+      const allPassed = res.length > 0 && res.every((r) => r.passed);
 
-      setAttempted((prev) => new Set(prev).add(selectedId));
-      await markAttempted(selectedId);
-      await addSubmission(selectedId, language, code, allPassed);
-      if (allPassed) await markSolved(selectedId);
+      setAttempted((prev) => new Set(prev).add(currentId));
+      await markAttempted(currentId);
+      await addSubmission(currentId, language, code, allPassed);
+      if (allPassed) await markSolved(currentId);
     } catch (err) {
       setRunError(String(err));
-      setAttempted((prev) => new Set(prev).add(selectedId));
-      await markAttempted(selectedId);
+      setAttempted((prev) => new Set(prev).add(currentId));
+      await markAttempted(currentId);
     } finally {
       setRunning(false);
     }

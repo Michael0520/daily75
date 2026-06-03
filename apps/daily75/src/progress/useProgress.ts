@@ -18,11 +18,13 @@ export function useProgress(userId: string | null) {
       return;
     }
     setLoading(true);
-    supabase
-      .from("progress")
-      .select("problem_id, status, solved_at")
-      .eq("user_id", userId)
-      .then(({ data }) => {
+    const client = supabase;
+    const load = async () => {
+      try {
+        const { data } = await client
+          .from("progress")
+          .select("problem_id, status, solved_at")
+          .eq("user_id", userId);
         if (data) {
           const map: ProgressMap = {};
           for (const row of data) {
@@ -33,17 +35,24 @@ export function useProgress(userId: string | null) {
           }
           setProgress(map);
         }
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+    void load();
   }, [userId]);
 
   const markAttempted = useCallback(
     async (problemId: number) => {
       if (progressRef.current[problemId]?.status === "solved") return;
       if (supabase && userId) {
-        await supabase
-          .from("progress")
-          .upsert({ user_id: userId, problem_id: problemId, status: "attempted", attempts: 1 });
+        try {
+          await supabase
+            .from("progress")
+            .upsert({ user_id: userId, problem_id: problemId, status: "attempted", attempts: 1 });
+        } catch {
+          // best-effort; local state still updates
+        }
       }
       setProgress((prev) => ({ ...prev, [problemId]: { status: "attempted" } }));
     },
@@ -54,9 +63,13 @@ export function useProgress(userId: string | null) {
     async (problemId: number) => {
       const now = new Date().toISOString();
       if (supabase && userId) {
-        await supabase
-          .from("progress")
-          .upsert({ user_id: userId, problem_id: problemId, status: "solved", solved_at: now });
+        try {
+          await supabase
+            .from("progress")
+            .upsert({ user_id: userId, problem_id: problemId, status: "solved", solved_at: now });
+        } catch {
+          // best-effort; local state still updates
+        }
       }
       setProgress((prev) => ({ ...prev, [problemId]: { status: "solved", solvedAt: now } }));
     },
@@ -66,9 +79,13 @@ export function useProgress(userId: string | null) {
   const addSubmission = useCallback(
     async (problemId: number, language: Language, code: string, passed: boolean) => {
       if (supabase && userId) {
-        await supabase
-          .from("submissions")
-          .insert({ user_id: userId, problem_id: problemId, language, code, passed });
+        try {
+          await supabase
+            .from("submissions")
+            .insert({ user_id: userId, problem_id: problemId, language, code, passed });
+        } catch {
+          // best-effort
+        }
       }
     },
     [userId],

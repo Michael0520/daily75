@@ -22,6 +22,7 @@ export async function runCode(
       clearTimeout(timer);
       worker.terminate();
       if (e.data.error) reject(new Error(e.data.error));
+      else if (!e.data.results) reject(new Error("Worker returned no results"));
       else resolve(e.data.results);
     };
 
