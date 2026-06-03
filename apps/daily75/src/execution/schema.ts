@@ -8,7 +8,7 @@ export const TestResultSchema = z.object({
   error: z.string().optional(),
 });
 
-export const WorkerMessageSchema = z.union([
-  z.object({ results: z.array(TestResultSchema), error: z.undefined().optional() }),
-  z.object({ error: z.string(), results: z.undefined().optional() }),
-]);
+export const WorkerMessageSchema = z.object({
+  results: z.array(TestResultSchema).optional(),
+  error: z.string().optional(),
+});
