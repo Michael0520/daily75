@@ -66,7 +66,7 @@ export function App() {
   return (
     <div className="flex h-screen flex-col bg-background text-foreground">
       <header className="flex h-11 items-center gap-4 border-b px-4">
-        <span className="font-semibold">LeetCode Daily</span>
+        <span className="font-semibold">daily75</span>
         <Separator orientation="vertical" className="h-4" />
         <span className="text-sm text-muted-foreground">
           {loading ? "…" : `${solvedCount} / 75 solved`}
