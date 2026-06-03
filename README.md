@@ -22,38 +22,33 @@ A personal daily coding practice platform built around the [Blind 75](https://ww
 
 ## Tech Stack
 
-| Layer               | Tool                           |
-| ------------------- | ------------------------------ |
-| UI                  | React 19 + Vite (`vite-plus`)  |
-| Editor              | Monaco Editor                  |
-| JS/TS execution     | Web Worker + `new Function()`  |
-| Syntax highlighting | Shiki v3                       |
-| Styling             | Tailwind CSS v4 + shadcn/ui    |
-| Database            | Supabase (optional)            |
-| Testing             | vite-plus built-in (`vp test`) |
+| Layer               | Tool                          |
+| ------------------- | ----------------------------- |
+| UI                  | React 19 + Vite               |
+| Editor              | Monaco Editor                 |
+| JS/TS execution     | Web Worker + `new Function()` |
+| Syntax highlighting | Shiki v3                      |
+| Styling             | Tailwind CSS v4 + shadcn/ui   |
+| Database            | Supabase (optional)           |
 
 ---
 
 ## Quick Start
 
 ```bash
-# 1. Install dependencies
 pnpm install
-
-# 2. (Optional) Configure Supabase
-cp apps/leetcode-daily/.env.example apps/leetcode-daily/.env.local
-# Fill in VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY
-
-# 3. Start the dev server
 pnpm dev:leetcode
 # → http://localhost:5173
 ```
 
 The app works without Supabase — progress is kept in-memory for the session and code is persisted to localStorage.
 
----
+To enable persistent progress, copy `.env.example` to `.env.local` and fill in your Supabase credentials:
 
-## Supabase Schema
+```env
+VITE_SUPABASE_URL=https://<project>.supabase.co
+VITE_SUPABASE_ANON_KEY=<anon-key>
+```
 
 ```sql
 CREATE TABLE progress (
@@ -72,33 +67,3 @@ CREATE TABLE submissions (
   created_at   timestamptz DEFAULT now()
 );
 ```
-
----
-
-## Project Structure
-
-```
-apps/leetcode-daily/src/
-  problem/      Problem data, filtering, daily schedule
-  execution/    JS/TS runner, type-stripping, Web Worker
-  progress/     Supabase progress tracking
-  editor/       Code state and localStorage persistence
-  infra/        Supabase client
-  components/   UI components
-```
-
----
-
-## Tests
-
-```bash
-pnpm --filter leetcode-daily test
-# 33 tests, ~100ms
-```
-
-| File                              | Coverage                  |
-| --------------------------------- | ------------------------- |
-| `execution/stripTypes.test.ts`    | TypeScript type-stripping |
-| `execution/extractFnName.test.ts` | Function name extraction  |
-| `problem/filter.test.ts`          | Problem filtering logic   |
-| `problem/schedule.test.ts`        | Daily schedule logic      |
