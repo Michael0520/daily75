@@ -84,6 +84,9 @@ catalogs:
     vite-plus:
       specifier: latest
       version: 0.1.24
+    zod:
+      specifier: ^3
+      version: 3.25.76
 
 overrides:
   vite: npm:@voidzero-dev/vite-plus-core@latest
@@ -147,6 +150,9 @@ importers:
       tw-animate-css:
         specifier: 'catalog:'
         version: 1.4.0
+      zod:
+        specifier: 'catalog:'
+        version: 3.25.76
     devDependencies:
       '@tailwindcss/vite':
         specifier: 'catalog:'
@@ -2027,6 +2033,9 @@ packages:
     engines: {node: '>= 14.6'}
     hasBin: true
 
+  zod@3.25.76:
+    resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
+
   zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
 
@@ -3822,5 +3831,7 @@ snapshots:
   ws@8.21.0: {}
 
   yaml@2.9.0: {}
+
+  zod@3.25.76: {}
 
   zwitch@2.0.4: {}

@@ -1,6 +1,6 @@
 import type { TestCase } from "../problem/types.ts";
-import type { RunResponse } from "./worker.ts";
 import type { Language, TestResult } from "./types.ts";
+import { WorkerMessageSchema } from "./schema.ts";
 
 export type { Language, TestResult };
 
@@ -18,12 +18,17 @@ export async function runCode(
       reject(new Error("Time Limit Exceeded (5s)"));
     }, TIMEOUT_MS);
 
-    worker.onmessage = (e: MessageEvent<RunResponse>) => {
+    worker.onmessage = (e: MessageEvent<unknown>) => {
       clearTimeout(timer);
       worker.terminate();
-      if (e.data.error) reject(new Error(e.data.error));
-      else if (!e.data.results) reject(new Error("Worker returned no results"));
-      else resolve(e.data.results);
+      const parsed = WorkerMessageSchema.safeParse(e.data);
+      if (!parsed.success) {
+        reject(new Error("Invalid response from worker"));
+        return;
+      }
+      if (parsed.data.error) reject(new Error(parsed.data.error));
+      else if (!parsed.data.results) reject(new Error("Worker returned no results"));
+      else resolve(parsed.data.results as TestResult[]);
     };
 
     worker.onerror = (err) => {

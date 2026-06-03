@@ -79,6 +79,11 @@ export function ProblemList({ selectedId, progress, onSelect }: Props) {
 
       <ScrollArea className="flex-1">
         <ul className="py-1">
+          {filtered.length === 0 && (
+            <li className="px-3 py-10 text-center text-xs text-muted-foreground/50">
+              No problems match
+            </li>
+          )}
           {filtered.map((p) => {
             const status = progress[p.id]?.status ?? "unsolved";
             const isSelected = selectedId === p.id;

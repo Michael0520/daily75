@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "../infra/supabase.ts";
 import type { Language } from "../execution/types.ts";
-import type { ProgressMap, ProblemStatus } from "./types.ts";
+import type { ProgressMap } from "./types.ts";
+import { ProgressRowSchema } from "./schema.ts";
 
 export type { ProgressMap };
 
@@ -28,10 +29,13 @@ export function useProgress(userId: string | null) {
         if (data) {
           const map: ProgressMap = {};
           for (const row of data) {
-            map[row.problem_id as number] = {
-              status: row.status as ProblemStatus,
-              solvedAt: row.solved_at as string | undefined,
-            };
+            const parsed = ProgressRowSchema.safeParse(row);
+            if (parsed.success) {
+              map[parsed.data.problem_id] = {
+                status: parsed.data.status,
+                solvedAt: parsed.data.solved_at ?? undefined,
+              };
+            }
           }
           setProgress(map);
         }
