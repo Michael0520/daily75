@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useAuth } from "./auth/useAuth.ts";
+import { AuthButton } from "./components/AuthButton.tsx";
 import { CodeEditor } from "./components/CodeEditor.tsx";
 import { ProblemDescription } from "./components/ProblemDescription.tsx";
 import { ProblemList } from "./components/ProblemList.tsx";
@@ -16,8 +18,11 @@ import { useDailyProblem } from "./problem/useDailyProblem.ts";
 import { useProgress } from "./progress/useProgress.ts";
 
 export function App() {
+  const { session, loading: authLoading, signInWithGoogle, signOut } = useAuth();
+  const userId = session?.user.id ?? null;
+
   const { progress, loading, markAttempted, markSolved, addSubmission, solvedCount } =
-    useProgress();
+    useProgress(userId);
   const daily = useDailyProblem(progress);
 
   const [selectedId, setSelectedId] = useState<number>(1);
@@ -88,6 +93,14 @@ export function App() {
         >
           Today: {daily.title}
         </button>
+        <div className="ml-auto">
+          <AuthButton
+            session={session}
+            loading={authLoading}
+            onSignIn={signInWithGoogle}
+            onSignOut={signOut}
+          />
+        </div>
       </header>
 
       <div className="flex flex-1 overflow-hidden">

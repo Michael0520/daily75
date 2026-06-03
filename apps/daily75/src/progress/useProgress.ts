@@ -5,20 +5,23 @@ import type { ProgressMap, ProblemStatus } from "./types.ts";
 
 export type { ProgressMap };
 
-export function useProgress() {
+export function useProgress(userId: string | null) {
   const [progress, setProgress] = useState<ProgressMap>({});
   const [loading, setLoading] = useState(true);
   const progressRef = useRef(progress);
   progressRef.current = progress;
 
   useEffect(() => {
-    if (!supabase) {
+    setProgress({});
+    if (!supabase || !userId) {
       setLoading(false);
       return;
     }
+    setLoading(true);
     supabase
       .from("progress")
       .select("problem_id, status, solved_at")
+      .eq("user_id", userId)
       .then(({ data }) => {
         if (data) {
           const map: ProgressMap = {};
@@ -32,37 +35,43 @@ export function useProgress() {
         }
         setLoading(false);
       });
-  }, []);
+  }, [userId]);
 
-  const markAttempted = useCallback(async (problemId: number) => {
-    if (progressRef.current[problemId]?.status === "solved") return;
-    if (supabase) {
-      await supabase
-        .from("progress")
-        .upsert({ problem_id: problemId, status: "attempted", attempts: 1 });
-    }
-    setProgress((prev) => ({ ...prev, [problemId]: { status: "attempted" } }));
-  }, []);
+  const markAttempted = useCallback(
+    async (problemId: number) => {
+      if (progressRef.current[problemId]?.status === "solved") return;
+      if (supabase && userId) {
+        await supabase
+          .from("progress")
+          .upsert({ user_id: userId, problem_id: problemId, status: "attempted", attempts: 1 });
+      }
+      setProgress((prev) => ({ ...prev, [problemId]: { status: "attempted" } }));
+    },
+    [userId],
+  );
 
-  const markSolved = useCallback(async (problemId: number) => {
-    const now = new Date().toISOString();
-    if (supabase) {
-      await supabase
-        .from("progress")
-        .upsert({ problem_id: problemId, status: "solved", solved_at: now });
-    }
-    setProgress((prev) => ({ ...prev, [problemId]: { status: "solved", solvedAt: now } }));
-  }, []);
+  const markSolved = useCallback(
+    async (problemId: number) => {
+      const now = new Date().toISOString();
+      if (supabase && userId) {
+        await supabase
+          .from("progress")
+          .upsert({ user_id: userId, problem_id: problemId, status: "solved", solved_at: now });
+      }
+      setProgress((prev) => ({ ...prev, [problemId]: { status: "solved", solvedAt: now } }));
+    },
+    [userId],
+  );
 
   const addSubmission = useCallback(
     async (problemId: number, language: Language, code: string, passed: boolean) => {
-      if (supabase) {
+      if (supabase && userId) {
         await supabase
           .from("submissions")
-          .insert({ problem_id: problemId, language, code, passed });
+          .insert({ user_id: userId, problem_id: problemId, language, code, passed });
       }
     },
-    [],
+    [userId],
   );
 
   const solvedCount = useMemo(
