@@ -42,8 +42,13 @@ export function CodeEditor({
             </button>
           ))}
         </div>
-        <Button size="sm" onClick={onRun} disabled={running} className="h-7 text-xs">
-          {running ? "Running…" : "▶ Run Tests"}
+        <Button
+          size="sm"
+          onClick={onRun}
+          disabled={running}
+          className="h-7 border-0 bg-emerald-600 text-xs text-white hover:bg-emerald-500 disabled:bg-emerald-600/40"
+        >
+          {running ? "Running…" : "▶ Run"}
         </Button>
       </div>
 

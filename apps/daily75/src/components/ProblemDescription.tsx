@@ -3,9 +3,9 @@ import { Badge } from "./ui/badge.tsx";
 import { ScrollArea } from "./ui/scroll-area.tsx";
 
 const diffColor = {
-  Easy: "bg-green-100 text-green-700",
-  Medium: "bg-yellow-100 text-yellow-700",
-  Hard: "bg-red-100 text-red-700",
+  Easy: "border-green-500/30 bg-green-500/10 text-green-400",
+  Medium: "border-yellow-500/30 bg-yellow-500/10 text-yellow-400",
+  Hard: "border-red-500/30 bg-red-500/10 text-red-400",
 };
 
 function InlineText({ text }: { text: string }) {

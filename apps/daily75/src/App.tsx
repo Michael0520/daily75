@@ -75,22 +75,40 @@ export function App() {
 
   return (
     <div className="flex h-screen flex-col bg-background text-foreground">
-      <header className="flex h-11 items-center gap-4 border-b px-4">
-        <span className="font-semibold">{config.appName}</span>
-        <Separator orientation="vertical" className="h-4" />
-        <span className="text-sm text-muted-foreground">
+      {/* Grain noise overlay */}
+      <div aria-hidden className="pointer-events-none fixed inset-0 z-[9999] opacity-[0.025]">
+        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+          <filter id="grain">
+            <feTurbulence
+              type="fractalNoise"
+              baseFrequency="0.65"
+              numOctaves="3"
+              stitchTiles="stitch"
+            />
+            <feColorMatrix type="saturate" values="0" />
+          </filter>
+          <rect width="100%" height="100%" filter="url(#grain)" />
+        </svg>
+      </div>
+
+      <header className="flex h-11 shrink-0 items-center gap-3 border-b px-4">
+        <span className="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent font-bold tracking-tight">
+          {config.appName}
+        </span>
+        <Separator orientation="vertical" className="h-4 opacity-30" />
+        <span className="tabular-nums text-xs text-muted-foreground">
           {loading ? "…" : `${solvedCount} / ${blind75.length} solved`}
         </span>
         {!hasSupabase && (
           <>
-            <Separator orientation="vertical" className="h-4" />
-            <span className="text-xs text-yellow-500">No DB — progress not saved</span>
+            <Separator orientation="vertical" className="h-4 opacity-30" />
+            <span className="text-xs text-amber-400">no db</span>
           </>
         )}
-        <Separator orientation="vertical" className="h-4" />
+        <Separator orientation="vertical" className="h-4 opacity-30" />
         <button
           onClick={() => setSelectedId(daily.id)}
-          className="text-sm text-primary hover:underline"
+          className="rounded-full border border-indigo-500/30 bg-indigo-500/10 px-2.5 py-0.5 text-xs text-indigo-300 transition-colors hover:bg-indigo-500/20"
         >
           Today: {daily.title}
         </button>
