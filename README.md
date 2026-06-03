@@ -39,7 +39,7 @@ A personal daily coding practice platform built around the [Blind 75](https://ww
 
 ```bash
 pnpm install
-pnpm dev:leetcode
+pnpm dev:daily75
 # → http://localhost:5173
 ```
 

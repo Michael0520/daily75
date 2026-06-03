@@ -1,12 +1,12 @@
 {
-  "name": "@leetcode-daily/root",
+  "name": "@daily75/root",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "scripts": {
     "ready": "vp fmt && vp lint && vp run -r test && vp run -r build",
     "dev": "vp run website#dev",
-    "dev:leetcode": "vp run leetcode-daily#dev",
+    "dev:daily75": "vp run daily75#dev",
     "prepare": "vp config"
   },
   "devDependencies": {
