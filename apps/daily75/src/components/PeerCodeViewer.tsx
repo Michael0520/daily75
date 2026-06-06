@@ -16,6 +16,7 @@ export function PeerCodeViewer({ solution, loading, onClose }: Props) {
           {loading ? "Loading…" : solution ? `${solution.displayName}'s solution` : "Solution"}
         </span>
         <button
+          aria-label="Close"
           onClick={onClose}
           className="rounded p-0.5 text-muted-foreground transition-colors hover:text-foreground"
         >

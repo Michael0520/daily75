@@ -19,6 +19,7 @@ import { runCode } from "./execution/runner.ts";
 import type { Language, TestResult } from "./execution/types.ts";
 import { hasSupabase } from "./infra/supabase.ts";
 import { blind75 } from "./problem/blind75.ts";
+import { selectGlobalDailyProblem } from "./problem/schedule.ts";
 import { useDailyProblem } from "./problem/useDailyProblem.ts";
 import { useProgress } from "./progress/useProgress.ts";
 import { useStreak } from "./progress/useStreak.ts";
@@ -35,7 +36,7 @@ export function App() {
   const daily = useDailyProblem();
   const streak = useStreak(progress);
 
-  const [selectedId, setSelectedId] = useState<number>(1);
+  const [selectedId, setSelectedId] = useState<number>(() => selectGlobalDailyProblem(blind75).id);
   const [language, setLanguage] = useState<Language>("javascript");
   const [running, setRunning] = useState(false);
   const [results, setResults] = useState<TestResult[] | null>(null);
@@ -182,12 +183,23 @@ export function App() {
             />
           </div>
 
-          <div className="h-56 border-t">
+          <div className="h-64 border-t">
             <Tabs defaultValue="results" className="flex h-full flex-col">
               <TabsList className="h-8 w-full justify-start rounded-none border-b px-2">
                 <TabsTrigger value="results" className="h-7 gap-1.5 text-xs">
                   <FlaskConical className="h-3 w-3" />
                   Tests
+                  {results && (
+                    <span
+                      className={`ml-0.5 rounded-full px-1 text-[10px] tabular-nums ${
+                        results.every((r) => r.passed)
+                          ? "bg-primary/20 text-primary"
+                          : "bg-red-500/20 text-red-400"
+                      }`}
+                    >
+                      {results.filter((r) => r.passed).length}/{results.length}
+                    </span>
+                  )}
                 </TabsTrigger>
                 <TabsTrigger value="solution" className="h-7 gap-1.5 text-xs">
                   <Lightbulb className="h-3 w-3" />
@@ -238,7 +250,11 @@ export function App() {
                 </TabsContent>
               )}
               <TabsContent value="history" className="m-0 flex-1 overflow-hidden">
-                <SubmissionHistory submissions={submissions} loading={submissionsLoading} />
+                <SubmissionHistory
+                  submissions={submissions}
+                  loading={submissionsLoading}
+                  userId={userId}
+                />
               </TabsContent>
             </Tabs>
           </div>

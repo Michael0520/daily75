@@ -53,6 +53,7 @@ export function AuthButton({ session, loading, onSignIn, onSignOut }: Props) {
         {session.user.user_metadata?.name ?? session.user.email}
       </span>
       <button
+        aria-label="Sign out"
         onClick={onSignOut}
         className="rounded p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
         title="Sign out"

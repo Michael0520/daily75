@@ -68,7 +68,9 @@ export function TestResults({ results, error, running }: Props) {
               Expected: {JSON.stringify(r.expected)}
             </p>
             {!r.passed && (
-              <p className="font-mono text-red-400">Got: {r.error ?? JSON.stringify(r.actual)}</p>
+              <p className="font-mono text-red-400">
+                Got: {r.error ?? (r.actual === undefined ? "undefined" : JSON.stringify(r.actual))}
+              </p>
             )}
           </div>
         ))}

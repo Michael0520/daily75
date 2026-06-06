@@ -14,8 +14,14 @@ export function SolutionViewer({ problem, language, unlocked }: Props) {
   if (!unlocked) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-2 text-muted-foreground">
-        <Lock className="h-8 w-8" />
-        <p className="text-sm">Submit at least once to unlock</p>
+        <Lock className="h-6 w-6 opacity-40" />
+        <p className="text-xs">
+          Press{" "}
+          <kbd className="rounded border border-border bg-muted px-1 py-0.5 font-mono text-[10px]">
+            ⌘↵
+          </kbd>{" "}
+          to run and unlock
+        </p>
       </div>
     );
   }

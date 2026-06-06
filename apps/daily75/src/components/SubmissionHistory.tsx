@@ -1,26 +1,26 @@
 import { CheckCircle, Clock, XCircle } from "lucide-react";
+import { timeAgo } from "../lib/time.ts";
 import type { Submission } from "../progress/useSubmissions.ts";
 
 interface Props {
   submissions: Submission[];
   loading: boolean;
+  userId: string | null;
 }
 
-function timeAgo(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
-  const m = Math.floor(diff / 60000);
-  if (m < 1) return "just now";
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
-}
-
-export function SubmissionHistory({ submissions, loading }: Props) {
+export function SubmissionHistory({ submissions, loading, userId }: Props) {
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center">
         <span className="animate-pulse text-xs text-muted-foreground">Loading…</span>
+      </div>
+    );
+  }
+  if (!userId) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-1.5 text-muted-foreground">
+        <Clock className="h-5 w-5 opacity-30" />
+        <span className="text-xs">Sign in to track your submission history.</span>
       </div>
     );
   }
