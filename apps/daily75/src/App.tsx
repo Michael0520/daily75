@@ -1,11 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Database, FlaskConical, Lightbulb, Trophy, Zap } from "lucide-react";
+import { Database, FlaskConical, History, Lightbulb, Trophy, Users, Zap } from "lucide-react";
 import { useAuth } from "./auth/useAuth.ts";
 import { AuthButton } from "./components/AuthButton.tsx";
 import { CodeEditor } from "./components/CodeEditor.tsx";
+import { DailyBoardTab } from "./components/DailyBoardTab.tsx";
+import { DailyCountdown } from "./components/DailyCountdown.tsx";
+import { PeerCodeViewer } from "./components/PeerCodeViewer.tsx";
 import { ProblemDescription } from "./components/ProblemDescription.tsx";
 import { ProblemList } from "./components/ProblemList.tsx";
 import { SolutionViewer } from "./components/SolutionViewer.tsx";
+import { SubmissionHistory } from "./components/SubmissionHistory.tsx";
 import { TestResults } from "./components/TestResults.tsx";
 import { Separator } from "./components/ui/separator.tsx";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs.tsx";
@@ -17,6 +21,10 @@ import { hasSupabase } from "./infra/supabase.ts";
 import { blind75 } from "./problem/blind75.ts";
 import { useDailyProblem } from "./problem/useDailyProblem.ts";
 import { useProgress } from "./progress/useProgress.ts";
+import { useStreak } from "./progress/useStreak.ts";
+import { useSubmissions } from "./progress/useSubmissions.ts";
+import { useDailyBoard } from "./social/useDailyBoard.ts";
+import { usePeerSolution } from "./social/usePeerSolution.ts";
 
 export function App() {
   const { session, loading: authLoading, signInWithGoogle, signOut } = useAuth();
@@ -24,7 +32,8 @@ export function App() {
 
   const { progress, loading, markAttempted, markSolved, addSubmission, solvedCount } =
     useProgress(userId);
-  const daily = useDailyProblem(progress);
+  const daily = useDailyProblem();
+  const streak = useStreak(progress);
 
   const [selectedId, setSelectedId] = useState<number>(1);
   const [language, setLanguage] = useState<Language>("javascript");
@@ -32,6 +41,7 @@ export function App() {
   const [results, setResults] = useState<TestResult[] | null>(null);
   const [runError, setRunError] = useState<string | null>(null);
   const [attempted, setAttempted] = useState<Set<number>>(new Set());
+  const [selectedPeerId, setSelectedPeerId] = useState<string | null>(null);
 
   const problem = useMemo(
     () => blind75.find((p) => p.id === selectedId) ?? blind75[0],
@@ -39,9 +49,18 @@ export function App() {
   );
   const { code, setCode } = useCodeState(problem, language);
 
+  const isDailyProblem = problem.id === daily.id;
+  const { entries, loading: boardLoading } = useDailyBoard(problem.id);
+  const { solution: peerSolution, loading: peerLoading } = usePeerSolution(
+    selectedPeerId,
+    problem.id,
+  );
+  const { submissions, loading: submissionsLoading } = useSubmissions(userId, problem.id);
+
   useEffect(() => {
     setResults(null);
     setRunError(null);
+    setSelectedPeerId(null);
   }, [selectedId, language]);
 
   const handleLanguageChange = useCallback((lang: Language) => {
@@ -105,6 +124,14 @@ export function App() {
           <Trophy className="h-3 w-3 text-primary/60" />
           {loading ? "…" : `${solvedCount} / ${blind75.length}`}
         </span>
+        {streak > 0 && (
+          <>
+            <Separator orientation="vertical" className="h-4 opacity-30" />
+            <span className="flex items-center gap-1 text-xs text-orange-400 tabular-nums">
+              🔥 {streak}
+            </span>
+          </>
+        )}
         {!hasSupabase && (
           <>
             <Separator orientation="vertical" className="h-4 opacity-30" />
@@ -122,6 +149,8 @@ export function App() {
           <Zap className="h-3 w-3" />
           {daily.title}
         </button>
+        <Separator orientation="vertical" className="h-4 opacity-30" />
+        <DailyCountdown />
         <div className="ml-auto">
           <AuthButton
             session={session}
@@ -154,7 +183,7 @@ export function App() {
           </div>
 
           <div className="h-56 border-t">
-            <Tabs defaultValue="results" className="h-full flex flex-col">
+            <Tabs defaultValue="results" className="flex h-full flex-col">
               <TabsList className="h-8 w-full justify-start rounded-none border-b px-2">
                 <TabsTrigger value="results" className="h-7 gap-1.5 text-xs">
                   <FlaskConical className="h-3 w-3" />
@@ -164,12 +193,52 @@ export function App() {
                   <Lightbulb className="h-3 w-3" />
                   Solution
                 </TabsTrigger>
+                {isDailyProblem && (
+                  <TabsTrigger value="daily" className="h-7 gap-1.5 text-xs">
+                    <Users className="h-3 w-3" />
+                    Daily
+                    {entries.length > 0 && (
+                      <span className="ml-0.5 rounded-full bg-primary/20 px-1 text-[10px] tabular-nums text-primary">
+                        {entries.length}
+                      </span>
+                    )}
+                  </TabsTrigger>
+                )}
+                <TabsTrigger value="history" className="h-7 gap-1.5 text-xs">
+                  <History className="h-3 w-3" />
+                  History
+                </TabsTrigger>
               </TabsList>
-              <TabsContent value="results" className="flex-1 overflow-hidden m-0">
+              <TabsContent value="results" className="m-0 flex-1 overflow-hidden">
                 <TestResults results={results} error={runError} running={running} />
               </TabsContent>
-              <TabsContent value="solution" className="flex-1 overflow-hidden m-0">
+              <TabsContent value="solution" className="m-0 flex-1 overflow-hidden">
                 <SolutionViewer problem={problem} language={language} unlocked={unlocked} />
+              </TabsContent>
+              {isDailyProblem && (
+                <TabsContent value="daily" className="m-0 flex-1 overflow-hidden">
+                  <div className="flex h-full">
+                    <div className={selectedPeerId ? "min-w-0 flex-1 overflow-hidden" : "w-full"}>
+                      <DailyBoardTab
+                        entries={entries}
+                        loading={boardLoading}
+                        onSelectUser={setSelectedPeerId}
+                      />
+                    </div>
+                    {selectedPeerId && (
+                      <div className="w-72 shrink-0 overflow-hidden">
+                        <PeerCodeViewer
+                          solution={peerSolution}
+                          loading={peerLoading}
+                          onClose={() => setSelectedPeerId(null)}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+              )}
+              <TabsContent value="history" className="m-0 flex-1 overflow-hidden">
+                <SubmissionHistory submissions={submissions} loading={submissionsLoading} />
               </TabsContent>
             </Tabs>
           </div>

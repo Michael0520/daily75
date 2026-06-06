@@ -109,7 +109,7 @@ export function ProblemList({ selectedId, progress, onSelect }: Props) {
                       <Circle className="h-3.5 w-3.5 text-muted-foreground/40" />
                     )}
                   </span>
-                  <span className="flex-1 truncate">{p.title}</span>
+                  <span className="min-w-0 flex-1 truncate">{p.title}</span>
                   <Badge
                     variant="outline"
                     className={cn(

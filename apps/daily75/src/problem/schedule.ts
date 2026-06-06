@@ -2,11 +2,21 @@ import type { Problem } from "./types.ts";
 import type { ProgressMap } from "../progress/types.ts";
 
 /**
- * Deterministically selects today's problem from the unsolved pool.
- * Falls back to the full list once all problems are solved.
+ * Selects the same problem for ALL users on a given day.
+ * Pure function of date — no per-user state involved.
  * `nowMs` defaults to Date.now() but is injectable for testing.
  */
-export function selectDailyProblem(
+export function selectGlobalDailyProblem(problems: Problem[], nowMs = Date.now()): Problem {
+  const dayIndex = Math.floor(nowMs / 86_400_000);
+  return problems[dayIndex % problems.length];
+}
+
+/**
+ * Selects today's problem from the user's UNSOLVED pool.
+ * Different users may get different problems. Use for personal recommendations,
+ * not for the shared daily challenge.
+ */
+export function selectPersonalDailyProblem(
   problems: Problem[],
   progress: ProgressMap,
   nowMs = Date.now(),
